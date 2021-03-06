@@ -53,6 +53,7 @@
 # Trajectories files
 *.xyz
 *.lammpstrj
+!init.lammpstrj
 
 # Data files
 *.dat
