@@ -10,9 +10,6 @@ code for atomistic simulations.
 
 <p> The results of this software has been validated against LAMMPS simulations. You are free to use lammps input scripts ('lammps' directory) and validations Python files to check it. </p>
 
-Requisites
-==========
-
 - Implemented ensembles:
 
   * NVT.
