@@ -1,5 +1,7 @@
-# Prerequisites
-*.d
+# Project files
+.project
+.cproject
+*.code-workspace
 
 # Compiled Object files
 *.slo
@@ -18,7 +20,6 @@
 
 # Fortran module files
 *.mod
-*.smod
 
 # Compiled Static libraries
 *.lai
@@ -30,3 +31,34 @@
 *.exe
 *.out
 *.app
+
+# Bash files
+*.sh
+*.bash
+
+# Mac trash
+*.dSYM/
+
+# Image files
+*.png
+*.jpg
+*.jpeg
+
+# Temporal files
+.DS_Store
+*.dmp
+*.attr
+*~
+
+# Trajectories files
+*.xyz
+*.lammpstrj
+
+# Data files
+*.dat
+
+# Result files
+log.mc
+log.mc.*
+log.lammps
+log.lammps.*
