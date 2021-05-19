@@ -24,8 +24,8 @@
  * Single or double precision can be set in conf.h header.
  * 
  * Author: adpozuelo@gmail.com
- * Version: 1.0
- * Date: 03/2021
+ * Version: 1.1
+ * Date: 05/2021
  */
 
 #include <stdbool.h>
@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
         gpu(&cxf, 1);
 
     print_step(&cxf, 0);
-    if (cxf.lammpstrj == 1)
+    if (cxf.lammpstrj == 1 || cxf.lammpstrj == 2)
         write_configuration(&cxf, 0);
 
     for (unsigned int step = 1; step <= cxf.nstep; ++step)

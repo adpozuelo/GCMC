@@ -1,6 +1,6 @@
 /* Author: adpozuelo@gmail.com
- * Version: 1.0
- * Date: 03/2021
+ * Version: 1.1
+ * Date: 05/2021
  */
 
 #include <stdio.h>
@@ -282,9 +282,9 @@ extern "C" void gpu(Configuration *cxf, const unsigned short mode)
             for (int j = 0; j < NDIM; ++j)
             {
                 r_test[j] = cxf->r[ntest * NDIM + j] + cxf->rdmax[j] * (2 * harvest[j] - 1) / cxf->side[j];
-                if (r_test[j] < -0.5)
+                if (r_test[j] < 0)
                     r_test[j] += 1;
-                if (r_test[j] > 0.5)
+                if (r_test[j] > 1)
                     r_test[j] -= 1;
             }
 
