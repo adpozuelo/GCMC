@@ -20,8 +20,8 @@ code for atomistic simulations.
 
 - Implemented units:
 
-  * Energy: ElectronVolts and Kelvins.
-  * Distance: Angstroms.
+  * Energy: ElectronVolts, Kelvins and Lennard Jones.
+  * Distance: Angstroms and Lennard Jones.
 
 Design & Arquitecture
 ==========
