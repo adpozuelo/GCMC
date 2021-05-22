@@ -10,8 +10,10 @@
  * 
  * Program units:
  *        Energy: "eV" electronVolts.
- *                 "K" Kelvins.
+ *                "K" Kelvins.
+ *                "LJ" Lennard Jones.
  *        Distance: Angstrom.
+ *                  Lennard Jones.
  *
  * Input data files (see the files for parameter specifications):
  *          in.mc : contains the configuration of the system to be simulated.
@@ -24,7 +26,7 @@
  * Single or double precision can be set in conf.h header.
  * 
  * Author: adpozuelo@gmail.com
- * Version: 1.1
+ * Version: 1.2
  * Date: 05/2021
  */
 
