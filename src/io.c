@@ -1,6 +1,6 @@
 /* Author: adpozuelo@gmail.com
- * Version: 1.0
- * Date: 03/2021
+ * Version: 1.1
+ * Date: 05/2021
  */
 
 #include <math.h>
@@ -24,7 +24,7 @@ void read_input_file(Configuration *cxf)
            &cxf->lammpstrj, buffer);
     cxf->units = (char *)malloc(strlen(buffer) * sizeof(char));
     strcpy(cxf->units, buffer);
-    if (strcmp(cxf->units, "K") != 0 && strcmp(cxf->units, "eV") != 0)
+    if (strcmp(cxf->units, "K") != 0 && strcmp(cxf->units, "eV") != 0 && strcmp(cxf->units, "LJ") != 0)
     {
         printf("ERROR: '%s' not implemented as energy unit!\n", cxf->units);
         exit(1);
@@ -54,7 +54,7 @@ void read_input_file(Configuration *cxf)
 
     if (strcmp(cxf->units, "eV") == 0)
         cxf->kt = KBEV * cxf->temp;
-    if (strcmp(cxf->units, "K") == 0)
+    if (strcmp(cxf->units, "K") == 0 || strcmp(cxf->units, "LJ") == 0)
         cxf->kt = cxf->temp;
 
     cxf->nitmax = (cxf->nsp * cxf->nsp + cxf->nsp) / 2;
@@ -196,10 +196,19 @@ void print_header(const Configuration *cxf)
         printf("%d%s ", cxf->nspps[i], cxf->atoms[i]);
     putchar('\n');
 
-    printf("Temperature: %.2lf K. Energy units: %s\nDensity: %lf natoms/A^3\nVolume: %.3lf A^3: ",
-           cxf->temp, cxf->units, cxf->density, cxf->volume * cxf->sigma_o * cxf->sigma_o * cxf->sigma_o);
+    char len_units = 'A';
+    char temp_units = 'K';
+    if (strcmp(cxf->units, "LJ") == 0)
+    {
+        len_units = ' ';
+        temp_units = ' ';
+    }
+
+    printf("Temperature: %.2lf%c. Energy units: %s\nDensity: %lf natoms/%c^3\nVolume: %.3lf %c^3: ",
+           cxf->temp, temp_units, cxf->units, cxf->density, len_units,
+           cxf->volume * cxf->sigma_o * cxf->sigma_o * cxf->sigma_o, len_units);
     for (int i = 0; i < NDIM; ++i)
-        printf("%.4lfA ", cxf->side[i] * cxf->sigma_o);
+        printf("%.4lf%c ", cxf->side[i] * cxf->sigma_o, len_units);
     putchar('\n');
     printf("--------------------------------------------------\n");
     printf("%-10s  %-6.2s %-22.8s\n", "Step", "% Acc", "PotEng");
@@ -218,10 +227,11 @@ void print_header(const Configuration *cxf)
         fprintf(fp, "%d%s ", cxf->nspps[i], cxf->atoms[i]);
     fputc('\n', fp);
 
-    fprintf(fp, "Temperature: %.2lf K. Energy units: %s\nDensity: %lf natoms/A^3\nVolume: %.3lf A^3: ",
-            cxf->temp, cxf->units, cxf->density, cxf->volume * cxf->sigma_o * cxf->sigma_o * cxf->sigma_o);
+    fprintf(fp, "Temperature: %.2lf%c. Energy units: %s\nDensity: %lf natoms/%c^3\nVolume: %.3lf %c^3: ",
+           cxf->temp, temp_units, cxf->units, cxf->density, len_units,
+           cxf->volume * cxf->sigma_o * cxf->sigma_o * cxf->sigma_o, len_units);
     for (int i = 0; i < NDIM; ++i)
-        fprintf(fp, "%.4lfA ", cxf->side[i] * cxf->sigma_o);
+        fprintf(fp, "%.4lf%c ", cxf->side[i] * cxf->sigma_o, len_units);
     fputc('\n', fp);
     fputs("--------------------------------------------------\n", fp);
     fprintf(fp, "%-10s  %-6.2s %-22.8s\n", "Step", "% Acc", "PotEng");

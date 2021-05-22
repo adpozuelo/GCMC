@@ -1,0 +1,8 @@
+200000 100000 1 1 LJ ## total steps, equil steps, shift, lammpstrj, energy units (K / eV)
+0.5 0.0166 0.0166 0.0166 ## % of acceptance, max trial displacements (x, y, z)
+lammps 2 5 0.8 ## fcc/lammps, number of species, temperature, density
+O 800 ## name of sp1, number of particles of sp1
+Si 64 ## name of spN, number of particles of spN
+1 1 5 ## 1-1 parameters (eps sigma rc) 
+1.4142 1.5 5 ## 1-2 parameters (eps sigma rc) 
+2 2 5 ## 2-2 parameters (eps sigma rc)

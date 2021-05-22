@@ -1,7 +1,7 @@
 #!/bin/bash
 # Author: adpozuelo@gmail.com
-# Version: 1.0
-# Date: 03/2021
+# Version: 1.1
+# Date: 05/2021
 # Input files: in.mc and both log.mc.cpu.'units' & log.mc.cpu.'units' to process data
 
 import matplotlib.pyplot as plt
@@ -37,7 +37,7 @@ mc_file = open ('in.mc', 'r')
 line_splitted = mc_file.readline().split()
 nstep = line_splitted[0]
 nequil = line_splitted[1]
-units = line_splitted[3]
+units = line_splitted[4]
 mc_file.readline() ; mc_file.readline()
 line_splitted = mc_file.readline().split()
 natoms = int(line_splitted[1])
@@ -51,6 +51,9 @@ ljToKelvin = 1.0
 if units == 'K':
     delta_esr = 1000.0
     ljToKelvin = 120.0 * natoms
+if units == 'LJ':
+    delta_esr = 10.0
+    ljToKelvin = natoms
 
 esr = []
 
