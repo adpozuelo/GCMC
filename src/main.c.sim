@@ -159,8 +159,8 @@ int main(int argc, char *argv[])
     std_dev = sqrt(std_dev / NSIM);
 
     FILE *fp = fopen(OUPUT_TIME_FILENAME, "w");
-    fprintf(fp, "Mean(sec) Std_dev(sec)\n");
-    fprintf(fp, "%e %e\n", mean, std_dev);
+    fprintf(fp, "mu(t) 2*sigma(t)\n");
+    fprintf(fp, "%e %e\n", mean, 2 * std_dev);
     fclose(fp);
 
     return 0;
