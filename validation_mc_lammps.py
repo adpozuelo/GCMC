@@ -1,4 +1,3 @@
-#!/bin/bash
 # Author: adpozuelo@gmail.com
 # Version: 1.1
 # Date: 05/2021
