@@ -58,13 +58,13 @@ void read_input_file(Configuration *cxf)
         cxf->kt = cxf->temp;
 
     cxf->nitmax = (cxf->nsp * cxf->nsp + cxf->nsp) / 2;
-    cxf->nspps = (unsigned short *)malloc(cxf->nsp * sizeof(unsigned short));
+    cxf->nspps = (unsigned int *)malloc(cxf->nsp * sizeof(unsigned int));
     cxf->atoms = (char **)malloc(cxf->nsp * sizeof(char *));
     cxf->natoms = 0;
     for (int i = 0; i < cxf->nsp; ++i)
     {
         fgets(line, MAX_LINE_SIZE, file);
-        sscanf(line, "%s %hu", buffer, &cxf->nspps[i]);
+        sscanf(line, "%s %u", buffer, &cxf->nspps[i]);
         cxf->atoms[i] = (char *)malloc(strlen(buffer) * sizeof(char));
         strcpy(cxf->atoms[i], buffer);
         cxf->natoms += cxf->nspps[i];
@@ -193,7 +193,7 @@ void print_header(const Configuration *cxf)
     printf("%d steps [%d equilibrium]\n", cxf->nstep, cxf->nequil);
     printf("%d particles: ", cxf->natoms);
     for (int i = 0; i < cxf->nsp; ++i)
-        printf("%d%s ", cxf->nspps[i], cxf->atoms[i]);
+        printf("%u%s ", cxf->nspps[i], cxf->atoms[i]);
     putchar('\n');
 
     char len_units = 'A';
@@ -224,7 +224,7 @@ void print_header(const Configuration *cxf)
     fprintf(fp, "%d steps [%d equilibrium]\n", cxf->nstep, cxf->nequil);
     fprintf(fp, "%d particles: ", cxf->natoms);
     for (int i = 0; i < cxf->nsp; ++i)
-        fprintf(fp, "%d%s ", cxf->nspps[i], cxf->atoms[i]);
+        fprintf(fp, "%u%s ", cxf->nspps[i], cxf->atoms[i]);
     fputc('\n', fp);
 
     fprintf(fp, "Temperature: %.2lf%c. Energy units: %s\nDensity: %lf natoms/%c^3\nVolume: %.3lf %c^3: ",

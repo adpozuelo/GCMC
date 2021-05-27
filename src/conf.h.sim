@@ -28,11 +28,12 @@ typedef struct
 {
     VSLStreamStatePtr streamRNG;
     unsigned int nstep, nequil, natoms, ntrial, naccept;
+    unsigned int *nspps;
     precision kt, acceptance, temp, density, sigma_o, volume, esr;
     char *mode, *units, *input_conf;
     char **atoms;
     unsigned short cuda_device, shift, nsp, nitmax, lammpstrj;
-    unsigned short *nspps, *ptype, *molecule;
+    unsigned short *ptype, *molecule;
     unsigned short **itp;
     precision *rdmax, *al, *bl, *bl2, *rc2, *r, *side, *esrrc;
     precision **rc;
