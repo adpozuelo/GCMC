@@ -37,6 +37,9 @@
 *.sh
 *.bash
 
+# Script files
+init_sim.py
+
 # Mac trash
 *.dSYM/
 
