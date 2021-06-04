@@ -9,8 +9,8 @@
 
 #include "mkl_vsl.h"
 
-// typedef float precision;
-typedef double precision;
+typedef float precision;
+//typedef double precision;
 
 #define INPUT_FILENAME "in.mc"
 #define LOG_FILENAME "log.mc"
@@ -21,6 +21,9 @@ typedef double precision;
 #define NTHREAD 128
 #define MAX_LINE_SIZE 256
 
+#define NSIM 1
+#define OUPUT_TIME_FILENAME "nsim_times.mc"
+
 typedef struct
 {
     VSLStreamStatePtr streamRNG;
@@ -30,10 +33,11 @@ typedef struct
     char *mode, *units, *input_conf;
     char **atoms;
     unsigned short cuda_device, shift, nsp, nitmax, lammpstrj;
-    unsigned short *nspps, *ptype, *molecule;
+    unsigned short *ptype, *molecule;
     unsigned short **itp;
     precision *rdmax, *al, *bl, *bl2, *rc2, *r, *side, *esrrc;
     precision **rc;
+    double time_spent;
 } Configuration;
 
 #endif

@@ -35,6 +35,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <math.h>
 #include "mkl_vsl.h"
 #include "conf.h"
 #include "io.h"
@@ -45,96 +46,144 @@
 
 int main(int argc, char *argv[])
 {
-    if (argc < 2 || argc > 3)
+    double sim_times[NSIM];
+    if (NSIM > 1)
     {
-        puts("Usage: mc cpu/gpu [gpuId]");
-        exit(1);
+        FILE *fp = fopen(OUPUT_TIME_FILENAME, "w");
+        fclose(fp);
     }
 
-    Configuration cxf;
-
-    if (strcmp(argv[1], "cpu") != 0 && strcmp(argv[1], "gpu") != 0)
+    for (unsigned int sim = 0; sim < NSIM; ++sim)
     {
-        puts("Usage: mc cpu/gpu [gpuId] input_file");
-        exit(1);
-    }
-    else
-    {
-        cxf.mode = (char *)malloc(strlen(argv[1]) * sizeof(char));
-        strcpy(cxf.mode, argv[1]);
-    }
-
-    cxf.cuda_device = cxf.ntrial = cxf.naccept = 0;
-    if (argv[2] != NULL)
-        cxf.cuda_device = atoi(argv[2]);
-
-    // vslNewStream(&run.streamRNG, VSL_BRNG_MT19937, time(NULL)); // Random mode
-    vslNewStream(&cxf.streamRNG, VSL_BRNG_MT19937, 1); // Determinist mode
-
-    read_input_file(&cxf);
-
-    if (strcmp(cxf.input_conf, "fcc") == 0)
-        init_fcc(&cxf);
-    if (strcmp(cxf.input_conf, "lammps") == 0)
-        read_lammpstrj(&cxf);
-    
-    if (strcmp(cxf.mode, "gpu") == 0)
-        gpu(&cxf, 0);
-
-    print_header(&cxf);
-
-    if (strcmp(cxf.mode, "cpu") == 0)
-        cxf.esr = energy_cpu(&cxf);
-    if (strcmp(cxf.mode, "gpu") == 0)
-        gpu(&cxf, 1);
-
-    print_step(&cxf, 0);
-    if (cxf.lammpstrj == 1 || cxf.lammpstrj == 2)
-        write_configuration(&cxf, 0);
-
-    for (unsigned int step = 1; step <= cxf.nstep; ++step)
-    {
-        if (strcmp(cxf.mode, "cpu") == 0)
-            move_atoms_cpu(&cxf);
-        if (strcmp(cxf.mode, "gpu") == 0)
-            gpu(&cxf, 2);
-
-        if (step <= cxf.nequil)
-            for (int i = 0; i < NDIM; ++i)
-                cxf.rdmax[i] *= (cxf.naccept / (precision)cxf.ntrial) / cxf.acceptance;
-
-        print_step(&cxf, step);
+        clock_t begin = clock();
+        clock_t end = 0;
         
-        if (step > cxf.nequil && cxf.lammpstrj == 2)
-            write_configuration(&cxf, step);
+        if (argc < 2 || argc > 3)
+        {
+            puts("Usage: mc cpu/gpu [gpuId]");
+            exit(1);
+        }
+
+        Configuration cxf;
+        cxf.time_spent = 0.0;
+
+        if (strcmp(argv[1], "cpu") != 0 && strcmp(argv[1], "gpu") != 0)
+        {
+            puts("Usage: mc cpu/gpu [gpuId] input_file");
+            exit(1);
+        }
+        else
+        {
+            cxf.mode = (char *)malloc(strlen(argv[1]) * sizeof(char));
+            strcpy(cxf.mode, argv[1]);
+        }
+
+        cxf.cuda_device = cxf.ntrial = cxf.naccept = 0;
+        if (argv[2] != NULL)
+            cxf.cuda_device = atoi(argv[2]);
+
+        // vslNewStream(&run.streamRNG, VSL_BRNG_MT19937, time(NULL)); // Random mode
+        vslNewStream(&cxf.streamRNG, VSL_BRNG_MT19937, 1); // Determinist mode
+
+        read_input_file(&cxf);
+
+        if (strcmp(cxf.input_conf, "fcc") == 0)
+            init_fcc(&cxf);
+        if (strcmp(cxf.input_conf, "lammps") == 0)
+            read_lammpstrj(&cxf);
+
+        if (strcmp(cxf.mode, "gpu") == 0)
+        {
+            end = clock();
+            cxf.time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
+            gpu(&cxf, 0);
+            begin = clock();
+        }
+
+        print_header(&cxf);
+
+        if (strcmp(cxf.mode, "cpu") == 0)
+            cxf.esr = energy_cpu(&cxf);
+        if (strcmp(cxf.mode, "gpu") == 0)
+        {
+            end = clock();
+            cxf.time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
+            gpu(&cxf, 1);
+            begin = clock();
+        }
+
+        print_step(&cxf, 0);
+        if (cxf.lammpstrj == 1 || cxf.lammpstrj == 2)
+            write_configuration(&cxf, 0);
+
+        for (unsigned int step = 1; step <= cxf.nstep; ++step)
+        {
+            if (strcmp(cxf.mode, "cpu") == 0)
+                move_atoms_cpu(&cxf);
+            if (strcmp(cxf.mode, "gpu") == 0) {
+                end = clock();
+                cxf.time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
+                gpu(&cxf, 2);
+                begin = clock();
+            }
+
+            if (step <= cxf.nequil)
+                for (int i = 0; i < NDIM; ++i)
+                    cxf.rdmax[i] *= (cxf.naccept / (precision)cxf.ntrial) / cxf.acceptance;
+
+            print_step(&cxf, step);
+
+            if (step > cxf.nequil && cxf.lammpstrj == 2)
+                write_configuration(&cxf, step);
+        }
+
+        if (strcmp(cxf.mode, "gpu") == 0)
+        {
+            end = clock();
+            cxf.time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
+            gpu(&cxf, 3);
+            begin = clock();
+        }
+        for (int i = 0; i < cxf.nsp; ++i)
+        {
+            free(cxf.atoms[i]);
+            free(cxf.itp[i]);
+            free(cxf.rc[i]);
+        }
+        vslDeleteStream(&cxf.streamRNG);
+        free(cxf.units);
+        free(cxf.mode);
+        free(cxf.al);
+        free(cxf.bl);
+        free(cxf.bl2);
+        free(cxf.rc);
+        free(cxf.rc2);
+        free(cxf.itp);
+        free(cxf.atoms);
+        free(cxf.rdmax);
+        free(cxf.nspps);
+        free(cxf.r);
+        free(cxf.side);
+        free(cxf.esrrc);
+        free(cxf.input_conf);
+        free(cxf.ptype);
+
+        putchar('\n');
+
+        end = clock();
+        cxf.time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
+
+        printf("Total simulation time: %e s\n", cxf.time_spent);
+
+        sim_times[sim] = cxf.time_spent;
+        if (NSIM > 1)
+        {
+            FILE *fp = fopen(OUPUT_TIME_FILENAME, "a");
+            fprintf(fp, "%e\n", cxf.time_spent);
+            fclose(fp);
+        }
+        putchar('\n');
     }
 
-    if (strcmp(cxf.mode, "gpu") == 0)
-        gpu(&cxf, 3);
-    for (int i = 0; i < cxf.nsp; ++i)
-    {
-        free(cxf.atoms[i]);
-        free(cxf.itp[i]);
-        free(cxf.rc[i]);
-    }
-    vslDeleteStream(&cxf.streamRNG);
-    free(cxf.units);
-    free(cxf.mode);
-    free(cxf.al);
-    free(cxf.bl);
-    free(cxf.bl2);
-    free(cxf.rc);
-    free(cxf.rc2);
-    free(cxf.itp);
-    free(cxf.atoms);
-    free(cxf.rdmax);
-    free(cxf.nspps);
-    free(cxf.r);
-    free(cxf.side);
-    free(cxf.esrrc);
-    free(cxf.input_conf);
-    free(cxf.ptype);
-
-    putchar('\n');
     return 0;
 }

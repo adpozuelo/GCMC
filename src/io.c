@@ -242,6 +242,9 @@ void print_header(const Configuration *cxf)
 void print_step(const Configuration *cxf, const unsigned int step)
 {
     precision naccepter = (cxf->naccept / (precision)cxf->ntrial) * 100.0;
+    if (step == 0)
+        naccepter = 0.0;
+        
     printf("%-10u  %-6.2lf %-22.8lf\n", step, naccepter, cxf->esr * cxf->kt);
 
     FILE *fp = fopen(LOG_FILENAME, "a");

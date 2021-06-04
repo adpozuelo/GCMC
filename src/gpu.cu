@@ -201,6 +201,10 @@ __global__ void delta_energy_gpu(unsigned int ntest, precision *eng0, precision 
 
 extern "C" void gpu(Configuration *cxf, const unsigned short mode)
 {
+    clock_t begin = clock();
+    clock_t end = 0;
+    cudaEvent_t start, stop;
+    float elapsed_time;
     // Data in GPU memory is static!!
     static unsigned int *natoms_nsp_dev;
     static unsigned short *itp_dev, *ptype_dev;
@@ -208,31 +212,41 @@ extern "C" void gpu(Configuration *cxf, const unsigned short mode)
 
     if (mode == 0)
     { // Initialize GPU memory
-        cudaSetDevice(cxf->cuda_device);
-        unsigned int natoms_nsp[2] = {cxf->natoms, cxf->nsp};
-        cudaMalloc((void **)&natoms_nsp_dev, 2 * sizeof(unsigned int));
-        cudaMemcpy(natoms_nsp_dev, natoms_nsp, 2 * sizeof(unsigned int), cudaMemcpyHostToDevice);
         unsigned short nsp2 = cxf->nsp * cxf->nsp;
         unsigned short *itp_serialized = (unsigned short *)malloc(nsp2 * sizeof(unsigned short));
         for (int i = 0; i < cxf->nsp; ++i)
             for (int j = 0; j < cxf->nsp; ++j)
                 itp_serialized[i * cxf->nsp + j] = cxf->itp[i][j];
+        unsigned int natoms_nsp[2] = {cxf->natoms, cxf->nsp};
+        cudaSetDevice(cxf->cuda_device);
+        cudaMalloc((void **)&natoms_nsp_dev, 2 * sizeof(unsigned int));
         cudaMalloc((void **)&itp_dev, nsp2 * sizeof(unsigned short));
-        cudaMemcpy(itp_dev, itp_serialized, nsp2 * sizeof(unsigned short), cudaMemcpyHostToDevice);
         cudaMalloc((void **)&ptype_dev, cxf->natoms * sizeof(unsigned short));
-        cudaMemcpy(ptype_dev, cxf->ptype, cxf->natoms * sizeof(unsigned short), cudaMemcpyHostToDevice);
         cudaMalloc((void **)&r_dev, cxf->natoms * NDIM * sizeof(precision));
-        cudaMemcpy(r_dev, cxf->r, cxf->natoms * NDIM * sizeof(precision), cudaMemcpyHostToDevice);
         cudaMalloc((void **)&side_dev, NDIM * sizeof(precision));
-        cudaMemcpy(side_dev, cxf->side, NDIM * sizeof(precision), cudaMemcpyHostToDevice);
         cudaMalloc((void **)&rc2_dev, cxf->nitmax * sizeof(precision));
-        cudaMemcpy(rc2_dev, cxf->rc2, cxf->nitmax * sizeof(precision), cudaMemcpyHostToDevice);
         cudaMalloc((void **)&al_dev, cxf->nitmax * sizeof(precision));
-        cudaMemcpy(al_dev, cxf->al, cxf->nitmax * sizeof(precision), cudaMemcpyHostToDevice);
         cudaMalloc((void **)&bl2_dev, cxf->nitmax * sizeof(precision));
-        cudaMemcpy(bl2_dev, cxf->bl2, cxf->nitmax * sizeof(precision), cudaMemcpyHostToDevice);
         cudaMalloc((void **)&esrrc_dev, cxf->nitmax * sizeof(precision));
+        end = clock();
+        cxf->time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
+
+        cudaEventCreate(&start);
+        cudaEventCreate(&stop);
+        cudaEventRecord(start, 0);
+        cudaMemcpy(natoms_nsp_dev, natoms_nsp, 2 * sizeof(unsigned int), cudaMemcpyHostToDevice);
+        cudaMemcpy(itp_dev, itp_serialized, nsp2 * sizeof(unsigned short), cudaMemcpyHostToDevice);
+        cudaMemcpy(ptype_dev, cxf->ptype, cxf->natoms * sizeof(unsigned short), cudaMemcpyHostToDevice);
+        cudaMemcpy(r_dev, cxf->r, cxf->natoms * NDIM * sizeof(precision), cudaMemcpyHostToDevice);
+        cudaMemcpy(side_dev, cxf->side, NDIM * sizeof(precision), cudaMemcpyHostToDevice);
+        cudaMemcpy(rc2_dev, cxf->rc2, cxf->nitmax * sizeof(precision), cudaMemcpyHostToDevice);
+        cudaMemcpy(al_dev, cxf->al, cxf->nitmax * sizeof(precision), cudaMemcpyHostToDevice);
+        cudaMemcpy(bl2_dev, cxf->bl2, cxf->nitmax * sizeof(precision), cudaMemcpyHostToDevice);
         cudaMemcpy(esrrc_dev, cxf->esrrc, cxf->nitmax * sizeof(precision), cudaMemcpyHostToDevice);
+        cudaEventRecord(stop, 0);
+        cudaEventSynchronize(stop);
+        cudaEventElapsedTime(&elapsed_time, start, stop);
+        cxf->time_spent += elapsed_time / 1000.0;
     }
     else if (mode == 1)
     { // energy_gpu
@@ -244,6 +258,13 @@ extern "C" void gpu(Configuration *cxf, const unsigned short mode)
         if (cxf->natoms % NTHREAD != 0)
             ++nblock;
 
+        end = clock();
+        cxf->time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
+
+        cudaEventCreate(&start);
+        cudaEventCreate(&stop);
+        cudaEventRecord(start, 0);
+
         energy_gpu<<<nblock, NTHREAD>>>(e_by_thread_dev, natoms_nsp_dev, itp_dev, ptype_dev, r_dev, side_dev, rc2_dev,
                                         al_dev, bl2_dev, esrrc_dev);
 
@@ -251,10 +272,17 @@ extern "C" void gpu(Configuration *cxf, const unsigned short mode)
         __binary_reduction__<<<nblock, NTHREAD>>>(natoms_nsp_dev, e_by_thread_dev, total_esr_dev);
         cudaMemcpy(&total_esr, total_esr_dev, sizeof(precision), cudaMemcpyDeviceToHost);
 
-        cxf->esr = total_esr / 2;
+        cudaEventRecord(stop, 0);
+        cudaEventSynchronize(stop);
+        cudaEventElapsedTime(&elapsed_time, start, stop);
+        cxf->time_spent += elapsed_time / 1000.0;
 
+        begin = clock();
+        cxf->esr = total_esr / 2;
         cudaFree(e_by_thread_dev);
         cudaFree(total_esr_dev);
+        end = clock();
+        cxf->time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
     }
     else if (mode == 2)
     { // move_atoms_gpu
@@ -288,6 +316,13 @@ extern "C" void gpu(Configuration *cxf, const unsigned short mode)
                     r_test[j] -= 1;
             }
 
+            end = clock();
+            cxf->time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
+
+            cudaEventCreate(&start);
+            cudaEventCreate(&stop);
+            cudaEventRecord(start, 0);
+
             cudaMemcpy(r_test_dev, r_test, NDIM * sizeof(precision), cudaMemcpyHostToDevice);
             cudaMemset(e_before_dev, 0, sizeof(precision));
             cudaMemset(e_after_dev, 0, sizeof(precision));
@@ -298,6 +333,13 @@ extern "C" void gpu(Configuration *cxf, const unsigned short mode)
             cudaMemcpy(&e_before, e_before_dev, sizeof(precision), cudaMemcpyDeviceToHost);
             cudaMemcpy(&e_after, e_after_dev, sizeof(precision), cudaMemcpyDeviceToHost);
 
+            cudaEventRecord(stop, 0);
+            cudaEventSynchronize(stop);
+            cudaEventElapsedTime(&elapsed_time, start, stop);
+            cxf->time_spent += elapsed_time / 1000.0;
+
+            begin = clock();
+
             deltae = e_after - e_before;
 
             if (deltae < 0.0)
@@ -305,7 +347,19 @@ extern "C" void gpu(Configuration *cxf, const unsigned short mode)
                 for (int k = 0; k < NDIM; ++k)
                     cxf->r[ntest * NDIM + k] = r_test[k];
 
+                end = clock();
+                cxf->time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
+                
+                cudaEventCreate(&start);
+                cudaEventCreate(&stop);
+                cudaEventRecord(start, 0);
                 cudaMemcpy(r_dev + ntest * NDIM, r_test, NDIM * sizeof(precision), cudaMemcpyHostToDevice);
+                cudaEventRecord(stop, 0);
+                cudaEventSynchronize(stop);
+                cudaEventElapsedTime(&elapsed_time, start, stop);
+                cxf->time_spent += elapsed_time / 1000.0;
+                
+                begin = clock();
                 cxf->esr += deltae;
                 cxf->naccept++;
             }
@@ -318,7 +372,19 @@ extern "C" void gpu(Configuration *cxf, const unsigned short mode)
                     for (int k = 0; k < NDIM; ++k)
                         cxf->r[ntest * NDIM + k] = r_test[k];
 
+                    end = clock();
+                    cxf->time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
+                    
+                    cudaEventCreate(&start);
+                    cudaEventCreate(&stop);
+                    cudaEventRecord(start, 0);
                     cudaMemcpy(r_dev + ntest * NDIM, r_test, NDIM * sizeof(precision), cudaMemcpyHostToDevice);
+                    cudaEventRecord(stop, 0);
+                    cudaEventSynchronize(stop);
+                    cudaEventElapsedTime(&elapsed_time, start, stop);
+                    cxf->time_spent += elapsed_time / 1000.0;
+                    
+                    begin = clock();
                     cxf->esr += deltae;
                     cxf->naccept++;
                 }
@@ -330,9 +396,12 @@ extern "C" void gpu(Configuration *cxf, const unsigned short mode)
         cudaFree(r_test_dev);
         free(harvest);
         free(r_test);
+        end = clock();
+        cxf->time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
     }
     else if (mode == 3)
     { // Release GPU memory
+        clock_t begin = clock();
         cudaFree(natoms_nsp_dev);
         cudaFree(itp_dev);
         cudaFree(ptype_dev);
@@ -342,6 +411,8 @@ extern "C" void gpu(Configuration *cxf, const unsigned short mode)
         cudaFree(al_dev);
         cudaFree(bl2_dev);
         cudaFree(esrrc_dev);
+        clock_t end = clock();
+        cxf->time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
     }
     else
     {
