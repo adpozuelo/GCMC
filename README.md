@@ -77,12 +77,38 @@ Volume: 624999.938<br>
 Density: 0.8<br>
 
 Performance study: shared vs no shared GPU memory<br>
-
-th    sha  no_sha s_up<br>
-64  398.91 465.45 1.17<br>
-128 358.20 513.78 1.43<br>
-256 379.36 459.50 1.21<br>
-512 400.27 455.84 1.14<br>
+<table>
+  <tr>
+    <th>th</th>
+    <th>sha</th>
+    <th>no_sha</th>
+    <th>s_up</th>
+  </tr>
+  <tr>
+    <td>64</td>
+    <td>398.91</td>
+    <td>465.45</td>
+    <td>1.17</td>
+  </tr>
+  <tr>
+    <td>128</td>
+    <td>358.20</td>
+    <td>513.78</td>
+    <td>1.43</td>
+  </tr>
+  <tr>
+    <td>256</td>
+    <td>379.36</td>
+    <td>459.50</td>
+    <td>1.21</td>
+  </tr>
+  <tr>
+    <td>512</td>
+    <td>400.27</td>
+    <td>455.84</td>
+    <td>1.14</td>
+  </tr>
+</table>
 
 th: GPU threads per block<br>
 sha: average time (sec) with GPU shared memory<br>
