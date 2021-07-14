@@ -55,8 +55,7 @@ int main(int argc, char *argv[])
 
     for (unsigned int sim = 0; sim < NSIM; ++sim)
     {
-        clock_t begin = clock();
-        clock_t end = 0;
+        CPU_TIME_INIT
         
         if (argc < 2 || argc > 3)
         {
@@ -94,10 +93,9 @@ int main(int argc, char *argv[])
 
         if (strcmp(cxf.mode, "gpu") == 0)
         {
-            end = clock();
-            cxf.time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
+            CPU_TIME_STOP_MAIN
             gpu(&cxf, 0);
-            begin = clock();
+            CPU_TIME_START
         }
 
         print_header(&cxf);
@@ -106,10 +104,9 @@ int main(int argc, char *argv[])
             cxf.esr = energy_cpu(&cxf);
         if (strcmp(cxf.mode, "gpu") == 0)
         {
-            end = clock();
-            cxf.time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
+            CPU_TIME_STOP_MAIN
             gpu(&cxf, 1);
-            begin = clock();
+            CPU_TIME_START
         }
 
         print_step(&cxf, 0);
@@ -121,10 +118,9 @@ int main(int argc, char *argv[])
             if (strcmp(cxf.mode, "cpu") == 0)
                 move_atoms_cpu(&cxf);
             if (strcmp(cxf.mode, "gpu") == 0) {
-                end = clock();
-                cxf.time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
+                CPU_TIME_STOP_MAIN
                 gpu(&cxf, 2);
-                begin = clock();
+                CPU_TIME_START
             }
 
             if (step <= cxf.nequil)
@@ -139,10 +135,9 @@ int main(int argc, char *argv[])
 
         if (strcmp(cxf.mode, "gpu") == 0)
         {
-            end = clock();
-            cxf.time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
+            CPU_TIME_STOP_MAIN
             gpu(&cxf, 3);
-            begin = clock();
+            CPU_TIME_START
         }
         for (int i = 0; i < cxf.nsp; ++i)
         {
@@ -170,8 +165,7 @@ int main(int argc, char *argv[])
 
         putchar('\n');
 
-        end = clock();
-        cxf.time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
+        CPU_TIME_STOP_MAIN
 
         printf("Total simulation time: %e s\n", cxf.time_spent);
 

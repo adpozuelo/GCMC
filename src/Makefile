@@ -1,5 +1,5 @@
 CXX = icpc
-CXXFLAGS = -std=c++11 -fast
+CXXFLAGS = -std=c++11 -ipo -O3 -static -fp-model fast=2 -xHost
 LDFLAGS = -std=c++11
 MKLFLAGS = -mkl=parallel
 NVCC = nvcc
@@ -21,7 +21,7 @@ obj/%.o: %.c $(HEADERS)
 	$(CXX) -c $(CXXFLAGS) -o $@ $<
 
 obj/gpu.o: gpu.cu $(HEADERS)
-	${NVCC} ${NVFLAGS} -lcurand -Xcompiler "${MKLFLAGS}" -c -o $@ $<
+	${NVCC} ${NVFLAGS} ${NVLIBS} -Xcompiler "${MKLFLAGS}" -c -o $@ $<
 
 clean:
 	rm -fr ../mc.exe $(OBJS)

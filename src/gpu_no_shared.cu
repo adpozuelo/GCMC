@@ -1,6 +1,6 @@
 /* Author: adpozuelo@gmail.com
- * Version: 1.2
- * Date: 06/2021
+ * Version: 1.3
+ * Date: 07/2021
  */
 
 #include <stdio.h>
@@ -62,65 +62,37 @@ __global__ void energy_gpu(precision *eng, unsigned int *natoms_nsp,
                            unsigned short *itp, unsigned short *ptype,
                            precision *r, precision *side, precision *rc2,
                            precision *al, precision *bl2, precision *esrrc) {
-  __shared__ precision rx[NTHREAD], ry[NTHREAD], rz[NTHREAD];
-  precision xi, yi, zi, rd2;
-  unsigned int i =
-      threadIdx.x + blockIdx.x * blockDim.x;  // global thread index
-  unsigned int tx = threadIdx.x;              // block thread index
-  unsigned int imol = i * NDIM;  // particle global memory vector position
-  unsigned int mtx = tx * NDIM;  // block memory vector adjust
-  unsigned int rest = natoms_nsp[0] % NTHREAD;  // particles out of block fit
-  unsigned int nbl = natoms_nsp[0] / NTHREAD;   // particles inside block fit
-  unsigned int ndmol =
-      natoms_nsp[0] * NDIM;  // total size of global memory vector position
+  unsigned int i = threadIdx.x + blockIdx.x * blockDim.x;
+  unsigned int natoms = natoms_nsp[0];
+  unsigned int nsp = natoms_nsp[1];
   precision energ = 0.0;
-  precision rdd[NDIM];
-  unsigned short nit;
 
-  if (i < natoms_nsp[0]) {
-    xi = r[imol];
-    yi = r[imol + 1];
-    zi = r[imol + 2];
-  }
+  if (i < natoms) {
+    precision rd2;
+    precision rdd[NDIM];
+    unsigned short nit;
 
-  for (int m = 0; m <= nbl; ++m) {
-    int ml = m / nbl;
-    int lim =
-        (1 - ml) * NTHREAD + ml * rest;  // calculate the limit in the block fit
-                                         // (particle's rest is considered)
-    int mth = m * NTHREAD;               // block fit particle displacement
-    int mtt = mth * NDIM + mtx;          // block fit particle position
+    unsigned int imol = i * NDIM;
+    precision xi = r[imol];
+    precision yi = r[imol + 1];
+    precision zi = r[imol + 2];
 
-    if (mtt <=
-        ndmol)  // if particle is valid get its position inside current block
-    {
-      rx[tx] = r[mtt];
-      ry[tx] = r[mtt + 1];
-      rz[tx] = r[mtt + 2];
-    }
-    __syncthreads();
+    for (unsigned int j = 0; j < natoms; j++) {
+      if (i != j) {
+        unsigned int jmol = j * NDIM;
+        nit = itp[ptype[i] * nsp + ptype[j]];
 
-    if (i < natoms_nsp[0]) {
-      for (int j = 0; j < lim; ++j) {  // for every other particle inside the
-                                       // block fit (check limit!)
-        int jmth = j + mth;            // particle global index
-        if (i != jmth) {
-          nit = itp[ptype[i] * natoms_nsp[1] + ptype[jmth]];
+        rdd[0] = xi - r[jmol];
+        rdd[1] = yi - r[jmol + 1];
+        rdd[2] = zi - r[jmol + 2];
 
-          rdd[0] = xi - rx[j];
-          rdd[1] = yi - ry[j];
-          rdd[2] = zi - rz[j];
-
-          rd2 = __distance2__(rdd, side);
-          if (rd2 < rc2[nit])
-            energ += __lennard_jones__(rd2, nit, al, bl2) - esrrc[nit];
-        }
+        rd2 = __distance2__(rdd, side);
+        if (rd2 < rc2[nit])
+          energ += __lennard_jones__(rd2, nit, al, bl2) - esrrc[nit];
       }
     }
-    __syncthreads();  // sync block threads
-
-    if (i < natoms_nsp[0]) eng[i] = energ;  // set total energy to output vector
   }
+  eng[i] = energ;
 }
 
 __global__ void delta_energy_gpu(unsigned int ntest, precision *eng0,
@@ -129,59 +101,40 @@ __global__ void delta_energy_gpu(unsigned int ntest, precision *eng0,
                                  unsigned short *ptype, precision *r,
                                  precision *side, precision *rc2, precision *al,
                                  precision *bl2, precision *esrrc) {
-  __shared__ precision e0[NTHREAD], e1[NTHREAD];
   unsigned int j = threadIdx.x + blockIdx.x * blockDim.x;
-  unsigned int tx = threadIdx.x;
-  precision rdd[NDIM], rddn[NDIM];
-  precision rd2;
-  unsigned short nit;
+  unsigned int natoms = natoms_nsp[0];
+  unsigned int nsp = natoms_nsp[1];
 
-  if (j < natoms_nsp[0]) {
-    if (j == ntest) {
-      e0[tx] = 0.0;
-      e1[tx] = 0.0;
-    }
+  precision energ0 = 0.0;
+  precision energ1 = 0.0;
+
+  if (j < natoms) {
+    precision rdd[NDIM], rddn[NDIM];
+    precision rd2;
+    unsigned short nit;
     if (j != ntest) {
+      unsigned int jmol = j * NDIM;
+      unsigned int test_mol = ntest * NDIM;
       for (int k = 0; k < NDIM; ++k) {
-        rdd[k] = r[j * NDIM + k] - r[ntest * NDIM + k];
-        rddn[k] = r[j * NDIM + k] - r_test[k];
+        rdd[k] = r[jmol + k] - r[test_mol + k];
+        rddn[k] = r[jmol + k] - r_test[k];
       }
 
-      nit = itp[ptype[ntest] * natoms_nsp[1] + ptype[j]];
+      nit = itp[ptype[ntest] * nsp + ptype[j]];
 
       // before movement
       rd2 = __distance2__(rdd, side);
       if (rd2 < rc2[nit])
-        e0[tx] = __lennard_jones__(rd2, nit, al, bl2) - esrrc[nit];
-      else
-        e0[tx] = 0.0;
+        energ0 = __lennard_jones__(rd2, nit, al, bl2) - esrrc[nit];
 
       // after movement
       rd2 = __distance2__(rddn, side);
       if (rd2 < rc2[nit])
-        e1[tx] = __lennard_jones__(rd2, nit, al, bl2) - esrrc[nit];
-      else
-        e1[tx] = 0.0;
+        energ1 = __lennard_jones__(rd2, nit, al, bl2) - esrrc[nit];
     }
-  } else {
-    e0[tx] = 0.0;
-    e1[tx] = 0.0;
   }
-  __syncthreads();
-
-  // binary reduction
-  for (unsigned int s = blockDim.x / 2; s > 0; s >>= 1) {
-    if (tx < s) {
-      e0[tx] += e0[tx + s];
-      e1[tx] += e1[tx + s];
-    }
-    __syncthreads();
-  }
-
-  if (tx == 0) {
-    atomicAdd(eng0, e0[0]);
-    atomicAdd(eng1, e1[0]);
-  }
+  eng0[j] = energ0;
+  eng1[j] = energ1;
 }
 
 extern "C" void gpu(Configuration *cxf, const unsigned short mode) {
@@ -268,7 +221,12 @@ extern "C" void gpu(Configuration *cxf, const unsigned short mode) {
     precision *r_test_dev;
     cudaMalloc((void **)&r_test_dev, NDIM * sizeof(precision));
 
-    precision *e_before_dev, *e_after_dev;
+    precision *e_before_by_thread_dev, *e_after_by_thread_dev, *e_before_dev,
+        *e_after_dev;
+    cudaMalloc((void **)&e_before_by_thread_dev,
+               cxf->natoms * sizeof(precision));
+    cudaMalloc((void **)&e_after_by_thread_dev,
+               cxf->natoms * sizeof(precision));
     cudaMalloc((void **)&e_before_dev, sizeof(precision));
     cudaMalloc((void **)&e_after_dev, sizeof(precision));
 
@@ -295,8 +253,15 @@ extern "C" void gpu(Configuration *cxf, const unsigned short mode) {
 
       GPU_TIME_START
       delta_energy_gpu<<<nblock, NTHREAD>>>(
-          ntest, e_before_dev, e_after_dev, r_test_dev, natoms_nsp_dev, itp_dev,
-          ptype_dev, r_dev, side_dev, rc2_dev, al_dev, bl2_dev, esrrc_dev);
+          ntest, e_before_by_thread_dev, e_after_by_thread_dev, r_test_dev,
+          natoms_nsp_dev, itp_dev, ptype_dev, r_dev, side_dev, rc2_dev, al_dev,
+          bl2_dev, esrrc_dev);
+
+      __binary_reduction__<<<nblock, NTHREAD>>>(
+          natoms_nsp_dev, e_before_by_thread_dev, e_before_dev);
+
+      __binary_reduction__<<<nblock, NTHREAD>>>(
+          natoms_nsp_dev, e_after_by_thread_dev, e_after_dev);
       GPU_TIME_STOP
 
       CPU_TIME_START
@@ -330,9 +295,11 @@ extern "C" void gpu(Configuration *cxf, const unsigned short mode) {
       }
     }
 
+    cudaFree(e_before_by_thread_dev);
+    cudaFree(e_after_by_thread_dev);
+    cudaFree(r_test_dev);
     cudaFree(e_before_dev);
     cudaFree(e_after_dev);
-    cudaFree(r_test_dev);
     free(harvest);
     free(r_test);
     CPU_TIME_STOP
