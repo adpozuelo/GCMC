@@ -1,7 +1,7 @@
 
 /* Author: adpozuelo@gmail.com
- * Version: 1.0
- * Date: 03/2021
+ * Version: 1.1
+ * Date: 07/2021
  */
 
 #ifndef CONF_H
@@ -18,10 +18,10 @@ typedef float precision;
 #define OUTPUT_XYZ_FILENAME "mc.lammpstrj"
 
 #define NDIM 3
-#define NTHREAD 64
+#define NTHREAD 128
 #define MAX_LINE_SIZE 256
 
-#define NSIM 10
+#define NSIM 1
 #define OUPUT_TIME_FILENAME "nsim_times.mc"
 
 #define CPU_TIME_INIT      \

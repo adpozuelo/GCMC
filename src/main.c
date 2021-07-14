@@ -26,8 +26,8 @@
  * Single or double precision can be set in conf.h header.
  * 
  * Author: adpozuelo@gmail.com
- * Version: 1.3
- * Date: 06/2021
+ * Version: 1.4
+ * Date: 07/2021
  */
 
 #include <stdbool.h>

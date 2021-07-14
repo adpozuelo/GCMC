@@ -1,6 +1,6 @@
 /* Author: adpozuelo@gmail.com
- * Version: 1.2
- * Date: 06/2021
+ * Version: 1.3
+ * Date: 07/2021
  */
 
 #include <stdio.h>

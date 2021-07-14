@@ -1,6 +1,6 @@
 /* Author: adpozuelo@gmail.com
- * Version: 1.0
- * Date: 03/2021
+ * Version: 1.1
+ * Date: 07/2021
  */
 
 #ifndef GPU_H
