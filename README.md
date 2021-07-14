@@ -60,7 +60,7 @@ Install
 	./mc.exe cpu  <- CPU (serial) mode.
 	./mc.exe gpu [gpu_id]  <- GPU (parallel) using CUDA device 0 (default).
 
-GPU's memory (shared and not shared)
+GPU's memory (shared or not shared)
 ==========
 
 <p> Two versions of GPU's memory developments are supplied: shared and no shared memory. </p>
