@@ -112,8 +112,8 @@ Density: 0.8<br>
 
 <p>
 th: GPU threads per block. <br>
-sha: average time (sec) with GPU shared memory. <br>
-no_sha: average time (sec) without GPU shared memory. <br>
+sha: [10 steps] average time (sec) with GPU shared memory. <br>
+no_sha: [10 steps] average time (sec) without GPU shared memory. <br>
 sp_up: no_sha / sha. <br>
 </p>
 
