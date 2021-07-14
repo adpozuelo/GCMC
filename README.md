@@ -64,7 +64,8 @@ GPU's memory (shared or not shared)
 ==========
 
 <p> Two versions of GPU's memory developments are supplied: shared and not shared memory. </p>
-<p> Next table shows several tests which are been made with both options </p>
+<p> By default GCMC is configured to use shared memory and 128 GPU's threads per block. </p>
+<p> Next table shows several tests which are been made with both options. </p>
 
 <p>
 MonteCarlo NVT Lennard Jones<br>
@@ -75,8 +76,9 @@ Temperature: 5.0<br>
 Volume: 624999.938<br>
 ε: 1.0, σ: 1.0, rc: 8.0<br>
 Density: 0.8<br>
+</p>
 
-Performance study: shared vs not shared GPU memory<br>
+<p> Performance study: shared vs not shared GPU memory.</p>
 <table>
   <tr>
     <th>th</th>
@@ -110,16 +112,16 @@ Performance study: shared vs not shared GPU memory<br>
   </tr>
 </table>
 
-th: GPU threads per block<br>
-sha: average time (sec) with GPU shared memory<br>
-no_sha: average time (sec) without GPU shared memory<br>
-sp_up: no_sha / sha<br>
+th: GPU threads per block. <br>
+sha: average time (sec) with GPU shared memory. <br>
+no_sha: average time (sec) without GPU shared memory. <br>
+sp_up: no_sha / sha. <br>
 </p>
 
-<p> Using shared memory:</b>: </p>
+<p> To use shared memory:</b>: </p>
 
 	cd src && cp gpu_shared.cu gpu.cu && make
 
-<p> Using not shared memory:</b>: </p>
+<p> To use not shared memory:</b>: </p>
 
 	cd src && cp gpu_no_shared.cu gpu.cu && make
