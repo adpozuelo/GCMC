@@ -57,8 +57,7 @@ Install
 
 <p> Execute MC application: </p>
 
-	./mc.exe cpu
-	./mc.exe gpu
+	./mc.exe
 
 GPU's memory (shared or not shared)
 ==========
