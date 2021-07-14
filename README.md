@@ -67,7 +67,7 @@ GPU's memory (shared or not shared)
 <p> By default GCMC is configured to use GPU's shared memory and 128 GPU's threads per block. </p>
 <p> Next table shows several tests which are been made to compare both options. </p>
 
-<p style="border:solid;">
+<p style="border-style:solid;">
 MonteCarlo NVT Lennard Jones<br>
 Shift enabled. gpu[2080Ti] device<br>
 500000 particles: 500000O (FCC)<br>
