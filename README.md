@@ -86,34 +86,34 @@ Density: 0.8<br>
   </tr>
   <tr>
     <td>64</td>
-    <td>398.91</td>
-    <td>465.45</td>
+    <td>39.89</td>
+    <td>46.54</td>
     <td>1.17</td>
   </tr>
   <tr>
     <td>128</td>
-    <td>358.20</td>
-    <td>513.78</td>
+    <td>35.82</td>
+    <td>51.38</td>
     <td>1.43</td>
   </tr>
   <tr>
     <td>256</td>
-    <td>379.36</td>
-    <td>459.50</td>
+    <td>37.94</td>
+    <td>45.95</td>
     <td>1.21</td>
   </tr>
   <tr>
     <td>512</td>
-    <td>400.27</td>
-    <td>455.84</td>
+    <td>40.03</td>
+    <td>45.58</td>
     <td>1.14</td>
   </tr>
 </table>
 
 <p>
 th: GPU's threads per block. <br>
-sha: (10 steps) average time (sec) with GPU's shared memory. <br>
-no_sha: (10 steps) average time (sec) without GPU's shared memory. <br>
+sha: 1 step's average time (sec) with GPU's shared memory. <br>
+no_sha: 1 step's average time (sec) without GPU's shared memory. <br>
 sp_up: no_sha / sha. <br>
 </p>
 
