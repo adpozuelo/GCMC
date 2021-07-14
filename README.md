@@ -122,6 +122,6 @@ sp_up: no_sha / sha. <br>
 
 	cd src && cp gpu_shared.cu gpu.cu && make && cd ..
 
-<p> To use not shared memory: </p>
+<p> To don`t use shared memory: </p>
 
 	cd src && cp gpu_no_shared.cu gpu.cu && make && cd ..
