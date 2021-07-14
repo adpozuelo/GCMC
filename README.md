@@ -26,7 +26,7 @@ code for atomistic simulations.
 Design & Arquitecture
 ==========
 
-MC is designed to use the massive parallel paradigm for intensive computation.Thus, MC needs a NVIDIA's GPGPU with CUDA arquitecture.
+MC is designed to use the massive parallel paradigm for intensive computation. Thus, MC needs a NVIDIA's GPGPU with CUDA arquitecture.
 
 Implementation
 ==========
