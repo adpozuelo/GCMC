@@ -73,7 +73,7 @@ Shift enabled. gpu[2080Ti] device<br>
 Energy units: LJ<br>
 Temperature: 5.0<br>
 Volume: 624999.938<br>
-ε: 1, σ: 1, rc: 8.0<br>
+ε: 1.0, σ: 1.0, rc: 8.0<br>
 Density: 0.8<br>
 
 Performance study: shared vs no shared GPU memory<br>
