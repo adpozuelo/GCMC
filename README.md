@@ -64,7 +64,7 @@ GPU's memory (shared and not shared)
 ==========
 
 <p> Two versions of GPU's memory developments are supplied: shared and no shared memory. </p>
-<p> Next table shows several tests that are been made with both options </p>
+<p> Next table shows several tests which are been made with both options </p>
 
 <p>
 MonteCarlo NVT Lennard Jones<br>
