@@ -63,7 +63,7 @@ Install
 GPU's memory (shared or not shared)
 ==========
 
-<p> Two versions of GPU's memory developments are supplied: shared and no shared memory. </p>
+<p> Two versions of GPU's memory developments are supplied: shared and not shared memory. </p>
 <p> Next table shows several tests which are been made with both options </p>
 
 <p>
@@ -76,7 +76,7 @@ Volume: 624999.938<br>
 ε: 1.0, σ: 1.0, rc: 8.0<br>
 Density: 0.8<br>
 
-Performance study: shared vs no shared GPU memory<br>
+Performance study: shared vs not shared GPU memory<br>
 <table>
   <tr>
     <th>th</th>
