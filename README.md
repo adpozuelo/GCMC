@@ -51,14 +51,14 @@ Install
 
 	git clone https://github.com/adpozuelo/GCMC.git 
 
-<p> Compile</b>: </p>
+<p> Compile: </p>
 
 	cd GCMC/src && make && cd ..
 
 <p> Execute MC application: </p>
 
-	./mc.exe cpu  <- CPU (serial) mode.
-	./mc.exe gpu [gpu_id]  <- GPU (parallel) using CUDA device 0 (default).
+	./mc.exe cpu
+	./mc.exe gpu
 
 GPU's memory (shared or not shared)
 ==========
@@ -118,10 +118,10 @@ no_sha: average time (sec) without GPU shared memory. <br>
 sp_up: no_sha / sha. <br>
 </p>
 
-<p> To use shared memory:</b>: </p>
+<p> To use shared memory: </p>
 
 	cd src && cp gpu_shared.cu gpu.cu && make
 
-<p> To use not shared memory:</b>: </p>
+<p> To use not shared memory: </p>
 
 	cd src && cp gpu_no_shared.cu gpu.cu && make
