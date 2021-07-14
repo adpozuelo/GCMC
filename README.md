@@ -60,11 +60,11 @@ Install
 	./mc.exe cpu  <- CPU (serial) mode.
 	./mc.exe gpu [gpu_id]  <- GPU (parallel) using CUDA device 0 (default).
 
-GPU memory
+GPU's memory (shared and not shared)
 ==========
 
-<p> Two versions of GPU memory developments are supplied: shared and no shared memory. </p>
-<p> Next table explains tests made with both options </p>
+<p> Two versions of GPU's memory developments are supplied: shared and no shared memory. </p>
+<p> Next table shows several tests that are been made with both options </p>
 
 <p>
 MonteCarlo NVT Lennard Jones<br>
